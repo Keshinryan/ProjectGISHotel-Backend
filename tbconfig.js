@@ -47,13 +47,6 @@ const createTable = () => {
                 process.exit(1);
               }
             });
-  
-            db.query('ALTER TABLE hotel ADD image VARCHAR(255)', (err) => {
-              if (err) {
-                console.error('Error adding image column:', err);
-                process.exit(1);
-              }
-            });
           }
           db.query('ALTER TABLE hotel MODIFY hotel_name VARCHAR(255) NOT NULL', (err) => {
             if (err) {
@@ -79,6 +72,13 @@ const createTable = () => {
           db.query('ALTER TABLE hotel MODIFY alamat TEXT NOT NULL', (err) => {
             if (err) {
               console.error('Error modifying alamat column:', err);
+              process.exit(1);
+            }
+          });
+          
+          db.query('ALTER TABLE hotel MODIFY image VARCHAR(255)', (err) => {
+            if (err) {
+              console.error('Error modifying image column:', err);
               process.exit(1);
             }
           });
