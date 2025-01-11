@@ -17,8 +17,8 @@ login = async (req, res) => {
         if (!passwordMatch) {
             return res.status(400).json([{ msg: "Incorrect Email or Password! Please Check Back Again.", path:"error" }]);
         }
-        const {id} = results[0];
-        const userToken={id};
+        const {id,role} = results[0];
+        const userToken={id,role};
         //Generate User Token
         const accessToken = generateToken(userToken);
         res.cookie('hotelgistoken', accessToken, { 
@@ -30,6 +30,7 @@ login = async (req, res) => {
         res.status(200).json({
             message: 'Login Successful',
             user:id,
+            role:role
         });
     }catch (error){
         res.status(404).json({
@@ -52,7 +53,7 @@ register = async (req, res) => {
             return res.status(401).json({ message: "Email already used" });
         } else {
             // Insert into hotel table
-            const [hotel] = await db.promise().execute('INSERT INTO `hotel` (`hotel_name`, `latitude`, `longitude`, `address`, `image`) VALUES (?, ?, ?, ?, ?, ?)', [hotelname, latitude, longitude, address, filehotel]);
+            const [hotel] = await db.promise().execute('INSERT INTO `hotel` (`hotel_name`, `latitude`, `longitude`, `address`, `image`) VALUES (?, ?, ?, ?, ?)', [hotelname, latitude, longitude, address, filehotel]);
             const hotelId = hotel.insertId;
 
             // Insert into user table
@@ -100,6 +101,35 @@ register2 = async (req, res) => {
     }
 };
 
+registerAdmin = async (req, res) => {
+    try {
+        const { email, pass } = req.body;
+        const fileuser= req.files&&req.files['userimage'][0] ? req.files['userimage'][0].filename  : null;
+        const passhash = bcrypt.hashSync(pass, 10);
+
+        // Check if the email is already used
+        let [check] =await  db.promise().execute('SELECT * FROM `user` WHERE `email` = ?', [email]);
+        if (check.length > 0) {
+            return res.status(401).json({ message: "Email already used" });
+        } else {
+            // Insert into user table
+            const [results] = await db.promise().execute('INSERT INTO `user` (`email`, `pass`,`image`,`role`) VALUES (?, ?,?,?)', [email, passhash, fileuser,'admin']);
+            if (!results) {
+                return res.status(401).json({ message: "Failed Register" });
+            }
+            res.status(201).json({
+                message: 'Register Successful',
+            });
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            message: "Failed to connect to Database",
+            error: error.message
+        });
+    }
+};
+
 logout = async(req,res)=>{
     try {
         res.clearCookie('hotelgistoken', { 
@@ -124,5 +154,6 @@ module.exports = {
     login,
     register,
     register2,
+    registerAdmin,
     logout
 };

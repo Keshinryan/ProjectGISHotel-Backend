@@ -1,6 +1,6 @@
 /* Import the required modules */
 const { Router } = require('express');
-const { profile, showAll, createRoom, updateRoom, deleteRoom } = require('../controller/user');
+const { profile, showAll, createRoom, updateRoom, deleteRoom, showAllAdmin,AcceptHotel } = require('../controller/user');
 const { body } = require('express-validator');
 const multer = require('multer');
 const path = require('path');
@@ -71,6 +71,11 @@ const conditionalValidation = () => {
 User.get('/profile', profile);
 
 User.get('/room', showAll);
+
+User.get('/admin', showAllAdmin);
+
+User.put('/admin/:id', upload().none(), conditionalValidation(), [
+], AcceptHotel);
 
 User.post('/room/add', upload().single('roomimage'), conditionalValidation(), [
     body('roomtype').isString().withMessage('Room Type is required'),

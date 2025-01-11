@@ -2,7 +2,7 @@ const db = require('../dbconfig');
 
 const showAll = async (req, res) => {
   try {
-    const [rows] = await db.promise().query('SELECT * FROM hotel');
+    const [rows] = await db.promise().query('SELECT * FROM hotel where accept=1');
 
     if (rows.length > 0) {
       rows.forEach((hotel) => {
@@ -23,6 +23,31 @@ const showAll = async (req, res) => {
     res.status(500).json({ message: 'Internal Server Error' });
   }
 };
+
+const showAllRoom= async (req, res) => {
+  try {
+    const [rows] = await db.promise().query('SELECT * FROM room');
+
+    if (rows.length > 0) {
+      rows.forEach((hotel) => {
+        if (hotel.image) {
+          const imgUrl = `${req.protocol}://${req.get('host')}/roomImg/${hotel.image}`;
+          hotel.image = imgUrl
+        }
+      })
+      res.status(200).json({
+        rooms: rows,
+        message: 'Hotel data retrieved successfully'
+      });
+    } else {
+      res.status(404).json({ message: 'No hotels found' });
+    }
+  } catch (err) {
+    console.error('Error fetching hotel data:', err);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
 
 const detailId = async (req, res) => {
   try {
@@ -51,4 +76,4 @@ const detailId = async (req, res) => {
     res.status(500).json({ message: 'Internal Server Error' });
   }
 };
-module.exports = { showAll, detailId };
+module.exports = { showAll, detailId, showAllRoom};

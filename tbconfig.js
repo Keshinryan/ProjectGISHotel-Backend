@@ -34,7 +34,7 @@ const createHotelTable = () => {
     } else {
       console.log('Hotel table is ready or created');
 
-      // Check if the 'id' and 'image' columns exist
+      // Check if the 'id' and 'rating' columns exist
       db.query('SHOW COLUMNS FROM hotel LIKE \'id\'', (err, results) => {
         if (err) {
           console.error('Error checking for id column:', err);
@@ -48,13 +48,53 @@ const createHotelTable = () => {
             }
           });
         }
+
+        db.query('SHOW COLUMNS FROM hotel LIKE \'accept\'', (err, results) => {
+          if (err) {
+            console.error('Error checking for accept column:', err);
+            process.exit(1);
+          } else if (results.length === 0) {
+            // Add 'accept' column if it doesn't exist
+            db.query('ALTER TABLE hotel ADD accept BOOLEAN DEFAULT FALSE NOT NULL AFTER address', (err) => {
+              if (err) {
+                console.error('Error adding accept column:', err);
+                process.exit(1);
+              } else {
+                console.log('Accept column added with default value FALSE');
+              }
+            });
+          }
+        });
+        // Check if the 'rating' column exists
+        db.query('SHOW COLUMNS FROM hotel LIKE \'rating\'', (err, results) => {
+          if (err) {
+            console.error('Error checking for rating column:', err);
+            process.exit(1);
+          } else if (results.length === 0) {
+            // Add 'rating' column if it doesn't exist
+            db.query('ALTER TABLE hotel ADD rating DOUBLE DEFAULT 5.0', (err) => {
+              if (err) {
+                console.error('Error adding rating column:', err);
+                process.exit(1);
+              } else {
+                console.log('Rating column added with default value 5.0');
+              }
+            });
+          }
+        });
+
         db.query('ALTER TABLE hotel MODIFY hotel_name VARCHAR(255) NOT NULL', (err) => {
           if (err) {
             console.error('Error modifying longitude column:', err);
             process.exit(1);
           }
         });
-
+        db.query('ALTER TABLE hotel MODIFY `Kategori` ENUM("Hotel", "Wisma","Homestay","Guest House") DEFAULT "Hotel" NOT NULL', (err) => {
+          if (err) {
+            console.error('Error modifying Kategori column:', err);
+            process.exit(1);
+          }
+        });
         // Modify the data types of 'longitude' and 'latitude'
         db.query('ALTER TABLE hotel MODIFY longitude DOUBLE NOT NULL', (err) => {
           if (err) {
@@ -82,6 +122,48 @@ const createHotelTable = () => {
             process.exit(1);
           }
         });
+        db.query('ALTER TABLE hotel MODIFY AC BOOLEAN DEFAULT FALSE NOT NULL', (err) => {
+          if (err) {
+            console.error('Error modifying AC column:', err);
+            process.exit(1);
+          }
+        });
+        db.query('ALTER TABLE hotel MODIFY Restoran BOOLEAN DEFAULT FALSE NOT NULL', (err) => {
+          if (err) {
+            console.error('Error modifying Restoran column:', err);
+            process.exit(1);
+          }
+        });
+        db.query('ALTER TABLE hotel MODIFY Wifi BOOLEAN DEFAULT FALSE NOT NULL', (err) => {
+          if (err) {
+            console.error('Error modifying Wifi column:', err);
+            process.exit(1);
+          }
+        });
+        db.query('ALTER TABLE hotel MODIFY `Resepsionis 24 Jam` BOOLEAN DEFAULT FALSE NOT NULL', (err) => {
+          if (err) {
+            console.error('Error modifying Resepsionis 24 Jam column:', err);
+            process.exit(1);
+          }
+        });
+        db.query('ALTER TABLE hotel MODIFY Parkir BOOLEAN DEFAULT FALSE NOT NULL', (err) => {
+          if (err) {
+            console.error('Error modifying parkir column:', err);
+            process.exit(1);
+          }
+        });
+        db.query('ALTER TABLE hotel MODIFY Lift BOOLEAN DEFAULT FALSE NOT NULL', (err) => {
+          if (err) {
+            console.error('Error modifying Lift column:', err);
+            process.exit(1);
+          }
+        });
+        db.query('ALTER TABLE hotel MODIFY `Kolam Renang` BOOLEAN DEFAULT FALSE NOT NULL', (err) => {
+          if (err) {
+            console.error('Error modifying Kolam Renang column:', err);
+            process.exit(1);
+          }
+        });
       });
     }
   });
@@ -95,7 +177,7 @@ const createUserTable = () => {
     email VARCHAR(255) NOT NULL,
     pass VARCHAR(255) NOT NULL,
     image VARCHAR(255),
-    hotel_id INT NOT NULL,
+    hotel_id INT,
     FOREIGN KEY (hotel_id) REFERENCES hotel(id) 
   )
 `;
@@ -105,6 +187,23 @@ const createUserTable = () => {
       process.exit(1);
     } else {
       console.log('User table is ready or created');
+      // Check if the 'role' column exists in the 'user' table
+      db.query('SHOW COLUMNS FROM user LIKE \'role\'', (err, results) => {
+        if (err) {
+          console.error('Error checking for role column:', err);
+          process.exit(1);
+        } else if (results.length === 0) {
+          // Add 'role' column if it doesn't exist
+          db.query('ALTER TABLE user ADD role ENUM("admin", "user") DEFAULT "user" NOT NULL AFTER pass', (err) => {
+            if (err) {
+              console.error('Error adding role column:', err);
+              process.exit(1);
+            } else {
+              console.log('Role column added with default value "user"');
+            }
+          });
+        }
+      });
     }
   });
 }
@@ -128,7 +227,7 @@ const CreateRoomTable = () => {
       console.log('Room table is ready or created');
     }
   });
-  
+
   db.query('ALTER TABLE room MODIFY room_type VARCHAR(255) NOT NULL', (err) => {
     if (err) {
       console.error('Error modifying room_type column:', err);

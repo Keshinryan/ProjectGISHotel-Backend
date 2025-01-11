@@ -1,6 +1,6 @@
 /* Import the required modules */
 const { Router } = require('express');
-const { login, register, logout } = require('../controller/auth');
+const { login, register, logout, register2, registerAdmin } = require('../controller/auth');
 const { body } = require('express-validator');
 const multer = require('multer');
 const path = require('path');
@@ -112,6 +112,15 @@ Auth.route('/register').post(upload().fields([{ name: 'hotelimage', maxCount: 1 
 
     ]
 ], (req, res, next) => validatorResult(req, res, next), register); // Route for register
+Auth.route('/register/admin').post(upload('').none(), [
+    [
+        [
+            body("email").notEmpty().withMessage("Email required").isEmail().withMessage('Invalid Email format').normalizeEmail(),
+            body("pass").notEmpty().withMessage("Password required").trim().escape(),
+        ]
+
+    ]
+], (req, res, next) => validatorResult(req, res, next), registerAdmin); // Route for register
 
 Auth.route('/register/:id').post(upload().single('userimage'), [
     [

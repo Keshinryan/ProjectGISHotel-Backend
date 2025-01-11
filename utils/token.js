@@ -8,38 +8,43 @@ function generateToken(user) {
 }
 
 function CheckToken(req, res, next) {
-  const tokenName = 'hotelgistoken'; // Replace with the actual name of your token
+  const tokenName = 'hotelgistoken';
   const cookies = req.headers.cookie;
-  
+
+  // Check if cookies exist
   if (!cookies) {
-    return res.status(401).json({ message: 'Unauthorized' });
+    return res.status(401).json({ message: 'Unauthorized: No cookies found' });
   }
 
-  // Find the token in the cookies
+  // Parse the cookies to find the token
   const token = cookies
     .split('; ')
-    .find((cookie) => cookie.startsWith(`${tokenName}=`))
+    .find((cookie) => cookie.trim().startsWith(`${tokenName}=`))
     ?.split('=')[1];
 
+  // If token is found
   if (token) {
     jwt.verify(token, process.env.TOKEN_SECRET, (err, decoded) => {
       if (err) {
-        return res.status(401).json({ message: 'Unauthorized' });
-      } else {
-        const currentTimeInSeconds = Math.floor(Date.now() / 1000);
-        if (decoded.exp < currentTimeInSeconds) {
-          return res
-            .status(401)
-            .json({ message: 'The session is already expired. Please Login Again' });
-        } else {
-          next();
-        }
+        console.error('JWT verification error:', err);
+        return res.status(401).json({ message: 'Unauthorized: Invalid token' });
       }
+
+      const currentTimeInSeconds = Math.floor(Date.now() / 1000);
+      if (decoded.exp < currentTimeInSeconds) {
+        console.warn('Token expired:', decoded);
+        return res
+          .status(401)
+          .json({ message: 'Session expired. Please login again.' });
+      }
+      req.user = decoded.user; // Attach user info to the request
+      next();
     });
   } else {
-    return res.status(401).json({ message: 'Unauthorized' });
+    return res.status(401).json({ message: 'Unauthorized: Token not found' });
   }
 }
+
 
 
 function decodedUserid(req, res) {
@@ -56,14 +61,13 @@ function decodedUserid(req, res) {
       .split('; ')
       .find((cookie) => cookie.startsWith(`${tokenName}=`))
       ?.split('=')[1];
-    var id = null;
+    let id = null;
     jwt.verify(token, process.env.TOKEN_SECRET, (err, decoded) => {
       id = decoded.user.id;
       if (err) {
         return res.status(401).json({ message: 'Unauthorized' });
       }
     });
-    console.log(id);
     return id;
   } catch (err) {
     return res.status(403).json({ message: "You haven't Loggged in" });
